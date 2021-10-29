@@ -23,13 +23,15 @@ final class CreateTaskUseCase
 
     public function execute(String $name, LocalDate $dueDate): int
     {
-        if (is_null($name) || is_null($dueDate)) {
-            throw new \InvalidArgumentException("必須項目が設定されていません");
+        try {
+            $task = Task::buildForCreate($name,$dueDate);
+            return $this->taskRepos->save($task);
+        } catch (\Throwable $e) {
+            logger(__METHOD__, [
+                get_class($e),
+                $e->getMessage()
+            ]);
+            throw new \RuntimeException('内部エラーが発生しました。詳細はシステムログを確認してください。');
         }
-        $task = Task::buildForCreate(
-            $name,
-            $dueDate
-        );
-        return $this->taskRepos->save($task);
     }
 }

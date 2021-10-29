@@ -19,7 +19,15 @@ final class PostponTaskUseCase
 
     public function execute(int $taskId): void
     {
-        $task = $this->taskRepos->findById($taskId);
-        $this->taskRepos->save($task->doPostpone());
+        try {
+            $task = $this->taskRepos->findById($taskId);
+            $this->taskRepos->save($task->doPostpone());
+        } catch (\Throwable $e) {
+            logger(__METHOD__, [
+                get_class($e),
+                $e->getMessage()
+            ]);
+            throw new \RuntimeException('内部エラーが発生しました。詳細はシステムログを確認してください。');
+        }
     }
 }
