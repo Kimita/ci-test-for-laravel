@@ -5,11 +5,41 @@ namespace Bizlogics\TaskMng\Aggregate\Task;
 
 final class Task
 {
+    private const POSTPONED_DAYS_FOR_EACH_RUN = 1; // 延期実行ごとの延期できる日数
+
     private int $id;
     private TaskStatus $taskStatus;
     private String $name;
     private LocalDate $dueDate;
-    private int $postponeCount;
+    private PostponeCount $postponeCount;
+
+    /**
+     * @param int $id
+     * @param TaskStatus $taskStatus
+     * @param String $name
+     * @param LocalDate $dueDate
+     * @param int $postponeCount
+     */
+    private function __construct(
+        int $id,
+        TaskStatus $taskStatus,
+        string $name,
+        LocalDate $dueDate,
+        PostponeCount $postponeCount
+    ) {
+        $this->id = $id;
+        $this->taskStatus = $taskStatus;
+        $this->name = $name;
+        $this->dueDate = $dueDate;
+        $this->postponeCount = $postponeCount;
+    }
+
+    public static function buildForCreate(
+        string $name,
+        LocalDate $dueDate
+    ): self {
+        return new self(0, TaskStatus::undone(), $name, $dueDate, PostponeCount::init());
+    }
 
     /**
      * @return int
@@ -17,14 +47,6 @@ final class Task
     public function getId(): int
     {
         return $this->id;
-    }
-
-    /**
-     * @param int $id
-     */
-    public function setId(int $id): void
-    {
-        $this->id = $id;
     }
 
     /**
@@ -36,27 +58,11 @@ final class Task
     }
 
     /**
-     * @param TaskStatus $taskStatus
-     */
-    public function setTaskStatus(TaskStatus $taskStatus): void
-    {
-        $this->taskStatus = $taskStatus;
-    }
-
-    /**
      * @return String
      */
     public function getName(): string
     {
         return $this->name;
-    }
-
-    /**
-     * @param String $name
-     */
-    public function setName(string $name): void
-    {
-        $this->name = $name;
     }
 
     /**
@@ -68,14 +74,6 @@ final class Task
     }
 
     /**
-     * @param LocalDate $dueDate
-     */
-    public function setDueDate(LocalDate $dueDate): void
-    {
-        $this->dueDate = $dueDate;
-    }
-
-    /**
      * @return int
      */
     public function getPostponeCount(): int
@@ -83,12 +81,10 @@ final class Task
         return $this->postponeCount;
     }
 
-    /**
-     * @param int $postponeCount
-     */
-    public function setPostponeCount(int $postponeCount): void
+    public function doPostpone(): self
     {
-        $this->postponeCount = $postponeCount;
+        $this->dueDate = $this->getDueDate()->addDays(self::POSTPONED_DAYS_FOR_EACH_RUN);
+        $this->postponeCount = $this->postponeCount->add();
+        return $this;
     }
-
 }

@@ -7,8 +7,6 @@ use Bizlogics\TaskMng\Aggregate\TaskAggregateRepositoryInerface;
 
 final class PostponTaskUseCase
 {
-    private const POSTPONE_MAX_COUNT = 3;
-
     private TaskAggregateRepositoryInerface $taskRepos;
 
     /**
@@ -22,11 +20,6 @@ final class PostponTaskUseCase
     public function execute(int $taskId): void
     {
         $task = $this->taskRepos->findById($taskId);
-        if ($task->getPostponeCount() >= self::POSTPONE_MAX_COUNT) {
-            throw new \InvalidArgumentException("最大延期回数を超過しています");
-        }
-        $task->setDueDate($task->getDueDate()->addDays(1));
-        $task->setPostponeCount($task->getPostponeCount() + 1);
-        $this->taskRepos->save($task);
+        $this->taskRepos->save($task->doPostpone());
     }
 }
